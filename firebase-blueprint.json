@@ -1,0 +1,376 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Record of the user profile, identity and application preferences",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique identifier of the user matching Firebase Auth UID",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the authenticated user",
+          "maxLength": 256
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the user",
+          "maxLength": 100
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar URL of the user",
+          "maxLength": 1000
+        },
+        "desiredIdentity": {
+          "type": "string",
+          "description": "User operating statement / identity goal",
+          "maxLength": 200
+        },
+        "occupation": {
+          "type": "string",
+          "description": "Current occupation or role",
+          "enum": ["student", "developer", "fitness", "entrepreneur", "custom", "engineer", "founder", "general"]
+        },
+        "studentModeEnabled": {
+          "type": "boolean",
+          "description": "Flag indicating if college attendance and syllabus features are enabled"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when profile record was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when profile record was last updated"
+        }
+      },
+      "required": ["userId", "email", "name", "desiredIdentity", "occupation", "studentModeEnabled", "createdAt", "updatedAt"]
+    },
+    "Goal": {
+      "title": "Goal",
+      "description": "User strategic target and milestone breakdown",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the goal",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the goal",
+          "maxLength": 200
+        },
+        "category": {
+          "type": "string",
+          "description": "Category tag",
+          "maxLength": 50
+        },
+        "targetMetric": {
+          "type": "string",
+          "description": "Target metric specification",
+          "maxLength": 100
+        },
+        "currentMetric": {
+          "type": "string",
+          "description": "Current metric value",
+          "maxLength": 100
+        },
+        "completionPercentage": {
+          "type": "number",
+          "description": "Progress percentage from 0 to 100"
+        },
+        "deadline": {
+          "type": "string",
+          "description": "Target date",
+          "maxLength": 50
+        },
+        "aiInsight": {
+          "type": "string",
+          "description": "AI analysis of goal pacing",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modified timestamp"
+        }
+      },
+      "required": ["id", "userId", "title", "category", "targetMetric", "currentMetric", "completionPercentage", "deadline", "createdAt", "updatedAt"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Actionable task item scheduled for the user",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the task",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the task",
+          "maxLength": 200
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description or notes",
+          "maxLength": 1000
+        },
+        "status": {
+          "type": "string",
+          "description": "Execution status",
+          "enum": ["Not Started", "In Progress", "Completed", "Skipped", "Delayed", "Blocked"]
+        },
+        "priority": {
+          "type": "string",
+          "description": "Priority tier",
+          "enum": ["urgent", "high", "medium", "low"]
+        },
+        "difficulty": {
+          "type": "string",
+          "description": "Difficulty estimate",
+          "enum": ["Easy", "Normal", "Hard", "Very Hard", "Brutal"]
+        },
+        "estimatedMinutes": {
+          "type": "number",
+          "description": "Estimated duration in minutes"
+        },
+        "actualMinutes": {
+          "type": "number",
+          "description": "Actual duration logged"
+        },
+        "scheduledTime": {
+          "type": "string",
+          "description": "Scheduled time block",
+          "maxLength": 50
+        },
+        "notes": {
+          "type": "string",
+          "description": "Session focus notes",
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modified timestamp"
+        }
+      },
+      "required": ["id", "userId", "title", "status", "priority", "estimatedMinutes", "createdAt", "updatedAt"]
+    },
+    "PersonalRoadmap": {
+      "title": "PersonalRoadmap",
+      "description": "Comprehensive skill or academic roadmap",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Roadmap unique identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Roadmap title",
+          "maxLength": 200
+        },
+        "targetGoal": {
+          "type": "string",
+          "description": "Target achievement",
+          "maxLength": 200
+        },
+        "sourceNotes": {
+          "type": "string",
+          "description": "User pasted syllabus and study notes",
+          "maxLength": 10000
+        },
+        "totalTasks": {
+          "type": "number",
+          "description": "Total task count"
+        },
+        "completedTasks": {
+          "type": "number",
+          "description": "Completed task count"
+        },
+        "progressPercentage": {
+          "type": "number",
+          "description": "Overall percentage"
+        },
+        "currentStreak": {
+          "type": "number",
+          "description": "Consistency streak in days"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modified timestamp"
+        }
+      },
+      "required": ["id", "userId", "title", "targetGoal", "totalTasks", "completedTasks", "progressPercentage", "currentStreak", "createdAt", "updatedAt"]
+    },
+    "ResourceBankItem": {
+      "title": "ResourceBankItem",
+      "description": "Curated reference link or document stored in the Resource Bank",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Resource identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the resource",
+          "maxLength": 200
+        },
+        "url": {
+          "type": "string",
+          "description": "Web URL of the resource",
+          "maxLength": 1000
+        },
+        "category": {
+          "type": "string",
+          "description": "Resource category",
+          "enum": ["Documentation", "Video Course", "Practice Problems", "GitHub Repo", "Article", "Cheatsheet", "Other"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Brief description of the material",
+          "maxLength": 500
+        },
+        "tags": {
+          "type": "array",
+          "description": "Topic tags"
+        },
+        "associatedGoalId": {
+          "type": "string",
+          "description": "Associated goal ID",
+          "maxLength": 128
+        },
+        "associatedGoalTitle": {
+          "type": "string",
+          "description": "Associated goal title",
+          "maxLength": 200
+        },
+        "associatedStageId": {
+          "type": "string",
+          "description": "Associated roadmap node ID",
+          "maxLength": 128
+        },
+        "associatedStageName": {
+          "type": "string",
+          "description": "Associated roadmap node title",
+          "maxLength": 200
+        },
+        "includeInAIPrompts": {
+          "type": "boolean",
+          "description": "Whether this item is prioritized as context for AI roadmap generation"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modified timestamp"
+        }
+      },
+      "required": ["id", "userId", "title", "url", "category", "includeInAIPrompts", "createdAt", "updatedAt"]
+    },
+    "PartnerRoom": {
+      "title": "PartnerRoom",
+      "description": "Live duo or squad room for real-time partner connectivity and shared accountability",
+      "type": "object",
+      "properties": {
+        "roomId": {
+          "type": "string",
+          "description": "Unique room or invite code",
+          "maxLength": 128
+        },
+        "members": {
+          "type": "array",
+          "description": "Connected focus partners with live metrics"
+        },
+        "activityFeed": {
+          "type": "array",
+          "description": "Real-time accountability feed and pings"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last activity timestamp"
+        }
+      },
+      "required": ["roomId", "members", "activityFeed", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile with personal identity and preferences"
+    },
+    "/users/{userId}/goals/{goalId}": {
+      "schema": "Goal",
+      "description": "User long-term goals and milestones"
+    },
+    "/users/{userId}/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "User daily and roadmap tasks"
+    },
+    "/users/{userId}/roadmaps/{roadmapId}": {
+      "schema": "PersonalRoadmap",
+      "description": "User structured learning and career roadmaps"
+    },
+    "/users/{userId}/resources/{resourceId}": {
+      "schema": "ResourceBankItem",
+      "description": "User curated learning links and reference documents"
+    },
+    "/partner_rooms/{roomId}": {
+      "schema": "PartnerRoom",
+      "description": "Live real-time focus partner workspace room"
+    }
+  }
+}

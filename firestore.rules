@@ -1,0 +1,241 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Test connection probe allowed for signed-in users
+    match /test/{testId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // Entity validation helpers
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['userId', 'email', 'name', 'desiredIdentity', 'occupation', 'studentModeEnabled', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'email', 'name', 'photoURL', 'desiredIdentity', 'occupation', 'studentModeEnabled', 'createdAt', 'updatedAt'])
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.email is string && data.email.size() <= 256
+        && data.name is string && data.name.size() <= 100
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1000))
+        && data.desiredIdentity is string && data.desiredIdentity.size() <= 200
+        && (data.occupation in ['student', 'developer', 'fitness', 'entrepreneur', 'custom', 'engineer', 'founder', 'general'])
+        && data.studentModeEnabled is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidGoal(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'title', 'category', 'targetMetric', 'currentMetric', 'completionPercentage', 'deadline', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'userId', 'title', 'category', 'targetMetric', 'currentMetric', 'completionPercentage', 'deadline', 'why', 'status', 'isPrivate', 'aiInsight', 'milestones', 'createdAt', 'updatedAt'])
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.id is string && data.id.size() <= 128
+        && data.title is string && data.title.size() <= 200
+        && data.category is string && data.category.size() <= 50
+        && data.targetMetric is string && data.targetMetric.size() <= 100
+        && data.currentMetric is string && data.currentMetric.size() <= 100
+        && data.completionPercentage is number
+        && data.deadline is string && data.deadline.size() <= 50
+        && (!('why' in data) || (data.why is string && data.why.size() <= 500))
+        && (!('status' in data) || (data.status in ['active', 'completed', 'paused']))
+        && (!('isPrivate' in data) || data.isPrivate is bool)
+        && (!('aiInsight' in data) || (data.aiInsight is string && data.aiInsight.size() <= 500))
+        && (!('milestones' in data) || (data.milestones is list && data.milestones.size() <= 50))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidTask(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'title', 'status', 'priority', 'estimatedMinutes', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'userId', 'title', 'description', 'status', 'priority', 'difficulty', 'estimatedMinutes', 'actualMinutes', 'scheduledTime', 'tags', 'notes', 'goalId', 'milestoneId', 'completedAt', 'recurrence', 'isPrivate', 'createdAt', 'updatedAt'])
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.id is string && data.id.size() <= 128
+        && data.title is string && data.title.size() <= 200
+        && (data.status in ['Not Started', 'In Progress', 'Completed', 'Skipped', 'Delayed', 'Blocked'])
+        && (data.priority in ['urgent', 'high', 'medium', 'low'])
+        && data.estimatedMinutes is number
+        && (!('description' in data) || (data.description is string && data.description.size() <= 1000))
+        && (!('difficulty' in data) || (data.difficulty in ['Easy', 'Normal', 'Hard', 'Very Hard', 'Brutal']))
+        && (!('actualMinutes' in data) || data.actualMinutes is number)
+        && (!('scheduledTime' in data) || (data.scheduledTime is string && data.scheduledTime.size() <= 50))
+        && (!('tags' in data) || (data.tags is list && data.tags.size() <= 20))
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000))
+        && (!('goalId' in data) || (data.goalId is string && data.goalId.size() <= 128))
+        && (!('milestoneId' in data) || (data.milestoneId is string && data.milestoneId.size() <= 128))
+        && (!('completedAt' in data) || (data.completedAt is string && data.completedAt.size() <= 50))
+        && (!('recurrence' in data) || (data.recurrence in ['none', 'daily', 'weekly']))
+        && (!('isPrivate' in data) || data.isPrivate is bool)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPersonalRoadmap(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'title', 'targetGoal', 'totalTasks', 'completedTasks', 'progressPercentage', 'currentStreak', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'userId', 'title', 'targetGoal', 'sourceNotes', 'stages', 'referenceLinks', 'totalTasks', 'completedTasks', 'progressPercentage', 'currentStreak', 'createdAt', 'updatedAt'])
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.id is string && data.id.size() <= 128
+        && data.title is string && data.title.size() <= 200
+        && data.targetGoal is string && data.targetGoal.size() <= 200
+        && (!('sourceNotes' in data) || (data.sourceNotes is string && data.sourceNotes.size() <= 10000))
+        && (!('stages' in data) || (data.stages is list && data.stages.size() <= 50))
+        && (!('referenceLinks' in data) || (data.referenceLinks is list && data.referenceLinks.size() <= 50))
+        && data.totalTasks is number
+        && data.completedTasks is number
+        && data.progressPercentage is number
+        && data.currentStreak is number
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidResourceBankItem(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'title', 'url', 'category', 'includeInAIPrompts', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'userId', 'title', 'url', 'category', 'description', 'associatedGoalId', 'associatedGoalTitle', 'associatedStageId', 'associatedStageName', 'tags', 'includeInAIPrompts', 'createdAt', 'updatedAt'])
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.id is string && data.id.size() <= 128
+        && data.title is string && data.title.size() <= 200
+        && data.url is string && data.url.size() <= 1000
+        && data.category is string && data.category.size() <= 50
+        && data.includeInAIPrompts is bool
+        && (!('description' in data) || (data.description is string && data.description.size() <= 500))
+        && (!('tags' in data) || (data.tags is list && data.tags.size() <= 20))
+        && (!('associatedGoalId' in data) || (data.associatedGoalId is string && data.associatedGoalId.size() <= 128))
+        && (!('associatedGoalTitle' in data) || (data.associatedGoalTitle is string && data.associatedGoalTitle.size() <= 200))
+        && (!('associatedStageId' in data) || (data.associatedStageId is string && data.associatedStageId.size() <= 128))
+        && (!('associatedStageName' in data) || (data.associatedStageName is string && data.associatedStageName.size() <= 200))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // User record root document
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false; // PII isolation - no listing users
+      allow create: if isOwner(userId)
+        && isValidId(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isOwner(userId)
+        && isValidId(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time;
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      // User goals subcollection
+      match /goals/{goalId} {
+        allow read: if isOwner(userId) && isValidId(userId);
+        allow create: if isOwner(userId)
+          && isValidId(userId)
+          && isValidId(goalId)
+          && isValidGoal(incoming(), userId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isOwner(userId)
+          && isValidId(userId)
+          && isValidId(goalId)
+          && isValidGoal(incoming(), userId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time;
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(goalId);
+      }
+
+      // User tasks subcollection
+      match /tasks/{taskId} {
+        allow read: if isOwner(userId) && isValidId(userId);
+        allow create: if isOwner(userId)
+          && isValidId(userId)
+          && isValidId(taskId)
+          && isValidTask(incoming(), userId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isOwner(userId)
+          && isValidId(userId)
+          && isValidId(taskId)
+          && isValidTask(incoming(), userId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time;
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(taskId);
+      }
+
+      // User roadmaps subcollection
+      match /roadmaps/{roadmapId} {
+        allow read: if isOwner(userId) && isValidId(userId);
+        allow create: if isOwner(userId)
+          && isValidId(userId)
+          && isValidId(roadmapId)
+          && isValidPersonalRoadmap(incoming(), userId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isOwner(userId)
+          && isValidId(userId)
+          && isValidId(roadmapId)
+          && isValidPersonalRoadmap(incoming(), userId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time;
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(roadmapId);
+      }
+
+      // User resource bank items subcollection
+      match /resources/{resourceId} {
+        allow read: if isOwner(userId) && isValidId(userId);
+        allow create: if isOwner(userId)
+          && isValidId(userId)
+          && isValidId(resourceId)
+          && isValidResourceBankItem(incoming(), userId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isOwner(userId)
+          && isValidId(userId)
+          && isValidId(resourceId)
+          && isValidResourceBankItem(incoming(), userId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time;
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(resourceId);
+      }
+    }
+
+    // Live Duo & Squad Partner Connectivity Rooms
+    match /partner_rooms/{roomId} {
+      allow read, write: if isSignedIn() && isValidId(roomId);
+    }
+  }
+}

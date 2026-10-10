@@ -1,0 +1,6 @@
+{
+  "name": "Kairon - AI Goal & Accountability OS",
+  "description": "Adaptive AI-powered personal operating system for turning goals into actionable daily plans, focus sessions, and squad accountability.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
